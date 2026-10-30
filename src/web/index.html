@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a1020">
+<title>Infinity Base</title>
+<style>
+  :root { --bg:#0a1020; --bg2:#0f172a; --card:#162038; --card2:#1c2847; --line:#27344f; --accent:#38bdf8; --on-accent:#06233a; --gold:#facc15;
+          --text:#f1f5f9; --muted:#8fa0b8; --good:#86efac; --bad:#fca5a5; --e1:#38bdf8; --e2:#ef4444; --e3:#a855f7;
+          --p1:#3b82f6; --p2:#f97316; --hexc:#facc15; --head:#0a1020d9; --glass:none; --input:#1e293b; --tint:#0a10208c;
+          --sky: radial-gradient(1200px 600px at 50% -200px, #1b2c55 0%, #0a1020 60%); }
+  /* themes (Settings > Theme, shared with the TV picker) */
+  :root[data-theme="1"] { --bg:#05080f; --bg2:#ffffff14; --card:#ffffff1a; --card2:#ffffff24; --line:#ffffff33; --accent:#7dd3fc; --on-accent:#05080f;
+          --muted:#d3dde9; --head:#05080f66; --tint:#05080f30; --glass:blur(14px) saturate(1.3); --input:#ffffff1f; --gold:#fde047;
+          --sky: radial-gradient(900px 500px at 20% 0%, #1e3a8a55 0%, transparent 70%), radial-gradient(900px 600px at 90% 100%, #0e749055 0%, transparent 70%), #05080f; }
+  :root[data-theme="2"] { --bg:#eef2f7; --bg2:#ffffff; --card:#ffffff; --card2:#e2e8f0; --line:#cbd5e1; --accent:#0284c7; --on-accent:#ffffff;
+          --text:#0f172a; --muted:#475569; --tint:#eef2f799; --good:#15803d; --bad:#b91c1c; --gold:#a16207; --hexc:#a16207; --head:#eef2f7e6; --input:#ffffff;
+          --p1:#2563eb; --p2:#ea580c; --sky: radial-gradient(1200px 600px at 50% -200px, #dbeafe 0%, #eef2f7 60%); }
+  :root[data-theme="3"] { --bg:#14060a; --bg2:#1f0a10; --card:#30101a; --card2:#3d1420; --line:#5b1d2a; --accent:#ef4444; --on-accent:#fff;
+          --muted:#fca5a5; --tint:#14060a8c; --p1:#60a5fa; --p2:#fb923c; --head:#14060ad9; --input:#3d1420;
+          --sky: radial-gradient(1200px 600px at 50% -200px, #5b1220 0%, #14060a 60%); }
+  :root[data-theme="4"] { --bg:#0b0618; --bg2:#140b2a; --card:#1e1138; --card2:#281748; --line:#3b2468; --accent:#d946ef; --on-accent:#fff;
+          --muted:#c4b5fd; --tint:#0b06188c; --p1:#22d3ee; --p2:#fb923c; --head:#0b0618d9; --input:#281748; --good:#6ee7b7;
+          --sky: radial-gradient(1000px 600px at 20% -100px, #4c1d95 0%, transparent 60%), radial-gradient(900px 600px at 100% 110%, #831843 0%, transparent 60%), #0b0618; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; background: var(--sky) fixed, var(--bg); color:var(--text);
+               font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body.pic { background: linear-gradient(var(--tint), var(--tint)) fixed, var(--pic) center / cover no-repeat fixed, var(--bg); }
+  .card-glass, header, .sel-card, .picker, .col, .sheet, .toast { -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass); }
+  button { font:inherit; color:inherit; }
+  header { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:10px; padding:10px 14px;
+           background:var(--head); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  header h1 { font-size:17px; margin:0; letter-spacing:.4px; flex:1; }
+  .chip { font-size:12px; padding:4px 10px; border-radius:999px; border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
+  .chip.on { color:var(--good); border-color:#166534; background:#052e1655; }
+  .icon { width:40px; height:40px; border-radius:12px; border:1px solid var(--line); background:var(--card); font-size:20px; cursor:pointer; }
+  main { max-width:1100px; margin:0 auto; padding:12px 14px 80px; }
+  .top { display:grid; grid-template-columns: minmax(280px, 380px) 1fr; gap:18px; align-items:start; }
+  @media (max-width: 860px) { .top { grid-template-columns: 1fr; } }
+
+  /* the base on a table (base3d.png from tools/base3d.py): figures stand on it, discs lie under them */
+  .stage { position:relative; width:100%; max-width:420px; margin:0 auto; aspect-ratio: 1 / 1.08; user-select:none; touch-action:manipulation; }
+  .stage > * { position:absolute; }
+  .stage .b3 { left:0; width:100%; filter: drop-shadow(0 18px 26px #000a); }
+  /* the base's lights: white masks (rim, spill on the plastic, light up into a clear figure base) tinted by the pad light */
+  .lmask { pointer-events:none; opacity:0; -webkit-mask: var(--m) center / 100% 100% no-repeat; mask: var(--m) center / 100% 100% no-repeat; }
+  .stage img.it, .stage img.fx { pointer-events:none; object-fit:fill; opacity:0; }
+  .hit { cursor:pointer; border-radius:50% 50% 45% 45%; -webkit-tap-highlight-color:transparent; }
+  /* every badge in the lists is drawn inside its box at its own aspect: art of any size or shape fits */
+  img.art { object-fit:contain; }
+  .ptag { position:absolute; transform:translate(-50%,-50%); padding:2px 7px; border-radius:6px; font-size:12px; font-weight:800; color:#fff; z-index:4;
+          box-shadow:0 2px 6px #0006; pointer-events:none; }
+
+  .side { display:flex; flex-direction:column; gap:12px; }
+  .sel-card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px 14px; display:flex; gap:12px; align-items:center; }
+  .sel-card img { width:56px; height:56px; flex:none; }
+  .sel-card .t { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; }
+  .sel-card .n { font-size:16px; font-weight:700; margin-top:2px; }
+  .actions { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; }
+  .act { padding:12px 6px; border-radius:14px; border:1px solid var(--line); background:var(--card2); font-weight:700; font-size:14px; cursor:pointer; }
+  .act.primary { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .act.warn { color:#fecaca; }
+  .act:disabled { opacity:.4; }
+  /* the three pads as stacks: what stands on top, then the discs underneath */
+  .stacks { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:8px; }
+  .col { background:var(--bg2); border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+  .col h3 { margin:0; padding:7px 8px; font-size:11.5px; letter-spacing:.5px; color:#fff; display:flex; align-items:center; gap:6px; background:var(--pc); }
+  .col h3 span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .col h3 i { width:14px; height:14px; border-radius:50%; flex:none; background:#222a; box-shadow:0 0 0 2px #0006 inset; }
+  .col h3 i.hex { border-radius:0; clip-path: polygon(50% 0, 97% 25%, 97% 75%, 50% 100%, 3% 75%, 3% 25%); }
+  .cell { margin:6px 6px 0; border-radius:10px; border:1px solid var(--line); background:var(--card); cursor:pointer; padding:6px; display:flex; gap:6px; align-items:center; min-height:48px; overflow:hidden; }
+  .cell.top { flex-direction:column; text-align:center; min-height:110px; justify-content:center; }
+  .cell.top img { width:62px; height:62px; }
+  .cell img { width:34px; height:34px; flex:none; }
+  .cell .e { width:34px; height:34px; flex:none; border-radius:50%; border:2px dashed var(--pc); opacity:.7; }
+  .cell.top .e { width:56px; height:56px; }
+  .cell .e.hex { border-radius:0; border:none; background:color-mix(in srgb, var(--pc) 30%, transparent);
+                 clip-path: polygon(50% 0, 97% 25%, 97% 75%, 50% 100%, 3% 75%, 3% 25%); }
+  .cell span { font-size:12px; font-weight:700; line-height:1.2; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .cell small { display:block; font-size:10px; color:var(--muted); font-weight:600; }
+  .cell.empty span { color:var(--muted); font-weight:600; }
+  .cell.sel { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset; }
+  .under { font-size:10px; color:var(--muted); padding:6px 8px 0; text-transform:uppercase; letter-spacing:.6px; }
+  .col .pad-end { height:6px; }
+  #status { min-height:20px; font-size:14px; color:var(--muted); }
+
+  /* picker */
+  .picker { margin-top:18px; background: #0f172acc; border:1px solid var(--line); border-radius:20px; padding:12px; }
+  .tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { flex:none; padding:10px 16px; border-radius:999px; background:var(--card); border:1px solid var(--line); font-weight:700; font-size:14px; cursor:pointer; }
+  .tab.on { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .row2 { display:flex; gap:8px; align-items:center; margin:10px 0 8px; flex-wrap:wrap; }
+  .ed { padding:7px 14px; border-radius:10px; background:var(--card); border:1px solid var(--line); font-weight:700; font-size:13px; cursor:pointer; }
+  .ed.on { color:#06233a; }
+  .ed.on[data-e="0"] { background:var(--accent); color:var(--on-accent); } .ed.on[data-e="1"] { background:var(--e1); } .ed.on[data-e="2"] { background:var(--e2); color:#fff; } .ed.on[data-e="3"] { background:var(--e3); color:#fff; }
+  #search { flex:1 1 200px; min-width:0; padding:10px 14px; border-radius:12px; border:1px solid var(--line); background:var(--input); color:var(--text); font-size:15px; }
+  .count { color:var(--muted); font-size:12px; margin-left:auto; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap:10px; }
+  .item { position:relative; background:var(--card); border:1px solid #1e2a44; border-radius:16px; padding:8px 6px 10px; text-align:center; cursor:pointer;
+          font-size:12.5px; line-height:1.25; transition: transform .12s, border-color .12s; }
+  .item:active { transform: scale(.97); }
+  .item img { width:84px; height:84px; display:block; margin:2px auto 6px; }
+  .item.onbase { opacity:.42; }
+  .item .star { position:absolute; top:4px; right:4px; width:30px; height:30px; border:none; background:none; font-size:20px; color:#475569; cursor:pointer; }
+  .item .star.on { color:var(--gold); }
+  .item small { display:block; color:var(--muted); font-size:10.5px; margin-top:2px; }
+  .empty { color:var(--muted); text-align:center; padding:30px 10px; }
+  /* the display: characters / play sets on the shelves of a white display case, discs in the
+     cut-outs of a collector's album (same pictures as the TV picker) */
+  .grid.shelf, .grid.album { display:block; border-radius:16px; overflow:hidden; box-shadow: inset 0 0 0 1px #0002, 0 10px 30px #0006; }
+  .drows { display:grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+  .grid.shelf { padding-top:4px; background: linear-gradient(90deg, #d4d1cc, #ecebe7 12%, #f3f2ef 50%, #ecebe7 88%, #d4d1cc); }
+  .grid.shelf .drows { background: url(/ui/shelf_row.png?v=__DIMOD_BUILD__) left top / 100% 168px repeat-y; }
+  .grid.album { padding:10px 2px 30px;
+                background: linear-gradient(#161618, #161618) left bottom / 100% 7px no-repeat,
+                            linear-gradient(#c41c24, #c41c24) left calc(100% - 7px) / 100% 10px no-repeat,
+                            repeating-linear-gradient(-28deg, #ffffff00 0 140px, #ffffff55 160px, #ffffff00 190px, #ffffff00 260px),
+                            linear-gradient(90deg, #cdd1d8, #e6e9ee 14%, #eef0f3 50%, #e6e9ee 86%, #cdd1d8); }
+  .grid.album .drows { row-gap:6px; }
+  .grid.shelf .item, .grid.album .item { background:none; border:none; border-radius:0; color:#26282f; overflow:visible; transition:none; }
+  .grid.shelf .item:active, .grid.album .item:active { transform:none; }
+  .grid.shelf .item { height:168px; padding:0; }
+  .grid.shelf .item img { position:absolute; width:118px; height:118px; margin:0; object-fit:contain; z-index:1;
+                          transform-origin: var(--fx) 96%; transition: transform .2s cubic-bezier(.2,1.2,.4,1), filter .2s; }
+  .grid.shelf .item::before { content:''; position:absolute; left:10%; right:10%; bottom:30px; height:120px; z-index:0; pointer-events:none;
+                              background: radial-gradient(closest-side, #fffbeee6, #fffbee00); opacity:0; transition: opacity .2s; }
+  .grid.shelf .item::after { content:''; position:absolute; left:50%; bottom:19px; width:var(--sw); height:12px; transform:translateX(-50%); z-index:0;
+                             background: radial-gradient(closest-side, #0006, #0000); pointer-events:none; transition: transform .2s, opacity .2s; }
+  .grid.shelf .item > div { position:absolute; left:8%; right:8%; bottom:7px; height:15px; line-height:15px; font-size:10px; font-weight:700;
+                            background:#fcfbf8; color:#26282f; border-radius:2px; box-shadow:0 1px 2px #0003; z-index:2;
+                            white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 3px; }
+  .grid.shelf .item small { display:none; }
+  /* highlighted: the figure steps forward off its shelf, lit from behind */
+  .grid.shelf .item:hover img, .grid.shelf .item.lift img { transform: translateY(5px) scale(1.15); filter: drop-shadow(0 6px 5px #0004); }
+  .grid.shelf .item:hover::before, .grid.shelf .item.lift::before { opacity:1; }
+  .grid.shelf .item:hover::after, .grid.shelf .item.lift::after { transform:translateX(-50%) translateY(5px) scale(1.25); }
+  .grid.album .item { height:150px; padding:0; }
+  .grid.album .slot { position:absolute; left:50%; top:4px; width:108px; height:108px; transform:translateX(-50%); background: center / contain no-repeat; }
+  .grid.album .item img { position:absolute; left:50%; top:16px; width:84px; height:84px; margin:0 0 0 -42px; z-index:1;
+                          transition: transform .2s cubic-bezier(.2,1.2,.4,1), filter .2s; }
+  .grid.album .item > div { position:absolute; left:4px; right:4px; top:116px; font-size:10.5px; font-weight:700; line-height:1.2;
+                            overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .grid.album .item small { display:none; }
+  /* highlighted: the disc rises out of its slot */
+  .grid.album .item:hover img, .grid.album .item.lift img { transform: translateY(-13px) scale(1.09); filter: drop-shadow(0 12px 7px #0005); }
+  /* picked: it lifts away (then drops onto the base above) */
+  .grid .item.picked img { animation: pickup .38s ease-in forwards; }
+  @keyframes pickup { to { transform: translateY(-60px) scale(1.25); opacity:0; } }
+  .grid.shelf .item .star, .grid.album .item .star { z-index:3; color:#9aa0ab; text-shadow:0 1px 0 #fff; }
+  .grid.shelf .item .star.on, .grid.album .item .star.on { color:#e0a800; }
+  .grid.shelf .sec, .grid.album .sec { margin:0; padding:12px 10px 6px; border:none; text-transform:none; letter-spacing:.3px; }
+  .plqi { height:84px; width:auto; display:block; filter: drop-shadow(0 2px 3px #0003); }
+  .grid.shelf .sec, .grid.album .sec { align-items:flex-end; }
+  .plq { display:inline-block; padding:6px 14px; border-radius:8px; background: linear-gradient(#41352d, #2a221d); color:#ecce8c;
+         box-shadow: inset 0 0 0 2px #c4a06088, 0 3px 6px #0004; font-size:13px; font-weight:800; }
+  .grid.shelf .sec span, .grid.album .sec span { color:#5f6470; }
+  /* the case's glass doors swing open on their hinges; an album page turns over the spine
+     (laid over the part of the display you can see) */
+  .grid { position:relative; }
+  .dispfx { position:absolute; left:0; right:0; z-index:20; pointer-events:none; perspective:1400px; }
+  .dispfx .door { position:absolute; top:0; bottom:0; width:50%; background: center / 100% 100% no-repeat; backface-visibility:hidden; }
+  .dispfx .door.l { left:0; transform-origin:left center; background-image:url(/ui/glass_door_l.png?v=__DIMOD_BUILD__); animation: doorl .62s cubic-bezier(.3,.1,.3,1) forwards; }
+  .dispfx .door.r { right:0; transform-origin:right center; background-image:url(/ui/glass_door_r.png?v=__DIMOD_BUILD__); animation: doorr .62s cubic-bezier(.3,.1,.3,1) forwards; }
+  @keyframes doorl { to { transform: rotateY(-105deg); opacity:.15; } }
+  @keyframes doorr { to { transform: rotateY(105deg); opacity:.15; } }
+  .dispfx .page { position:absolute; top:0; bottom:0; left:0; right:0; transform-origin:left center; backface-visibility:hidden;
+                  background: linear-gradient(90deg, #cdd1d8, #e9ebef 14%, #f1f2f5 60%, #dfe2e8); box-shadow: 0 0 30px #0005;
+                  animation: turnf .46s cubic-bezier(.4,.05,.3,1) forwards; }
+  .dispfx .page::after { content:''; position:absolute; inset:0; background: linear-gradient(90deg, #0000 55%, #0004); }
+  .dispfx .page.back { transform-origin:right center; animation-name: turnb; }
+  .dispfx .page.back::after { background: linear-gradient(270deg, #0000 55%, #0004); }
+  @keyframes turnf { to { transform: rotateY(-178deg); } }
+  @keyframes turnb { to { transform: rotateY(178deg); } }
+  @media (prefers-reduced-motion: reduce) { .grid .item img { transition:none !important; } .grid .item.picked img { animation:none; } .dispfx { display:none; } }
+  /* power disc sections */
+  .secs { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin:0 -12px 10px; padding:8px 12px;
+          position:sticky; top:61px; z-index:10; background:var(--head); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .secs::-webkit-scrollbar { display:none; }
+  .secs:empty { display:none; }
+  .sec-chip { flex:none; padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:var(--card2); font-size:12.5px; font-weight:700; cursor:pointer; }
+  .sec-chip b { color:var(--muted); font-weight:600; margin-left:4px; }
+  .sec { grid-column: 1 / -1; display:flex; align-items:baseline; gap:8px; margin:10px 2px 0; padding-bottom:6px; border-bottom:1px solid var(--line);
+         font-size:14px; letter-spacing:.6px; text-transform:uppercase; scroll-margin-top:118px; }
+  .sec:first-child { margin-top:0; }
+  .sec span { color:var(--muted); font-size:12px; letter-spacing:0; text-transform:none; font-weight:600; }
+
+  /* settings sheet + toast */
+  .sheet-bg { position:fixed; inset:0; background:#000a; z-index:40; display:none; }
+  .sheet { position:fixed; left:50%; bottom:0; transform:translateX(-50%); width:min(560px, 100%); background:var(--bg2); border:1px solid var(--line);
+           border-radius:22px 22px 0 0; padding:16px 18px 26px; z-index:41; display:none; max-height:88vh; overflow:auto; }
+  .sheet h2 { margin:0 0 4px; font-size:18px; } .sheet p.sub { margin:0 0 14px; color:var(--muted); font-size:13px; }
+  .set { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .set label { font-weight:600; }
+  .seg { display:flex; background:var(--card); border-radius:10px; padding:3px; gap:3px; }
+  .seg button { border:none; background:none; padding:7px 10px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; color:var(--muted); }
+  .seg button.on { background:var(--accent); color:var(--on-accent); }
+  .seg.wrap { flex-wrap:wrap; justify-content:flex-end; }
+  .sw { width:16px; height:16px; border-radius:50%; display:inline-block; vertical-align:-3px; margin-right:6px; border:1px solid #ffffff55; }
+  .bgrow { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .bgopt { width:84px; height:48px; border-radius:10px; border:2px solid var(--line); background:#0005 center / cover; cursor:pointer; position:relative;
+           font-size:10.5px; font-weight:700; color:#fff; text-shadow:0 1px 3px #000; display:flex; align-items:flex-end; justify-content:center; padding-bottom:3px; }
+  .bgopt.on { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent); }
+  .set.col2 { flex-direction:column; align-items:stretch; }
+  select, input[type=range] { accent-color: var(--accent); }
+  select { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px; color:var(--text); font-size:14px; }
+  .toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(30px); background:#0b1324f2; border:1px solid var(--line);
+           padding:11px 16px; border-radius:14px; z-index:50; opacity:0; transition: all .2s; max-width:92vw; font-size:14px; }
+  .toast.show { opacity:1; transform:translateX(-50%); }
+  h1 .ver { font-size:11px; font-weight:500; color:var(--muted); margin-left:6px; letter-spacing:.02em; }
+  .buildwarn { margin:8px 12px 0; padding:10px 12px; border-radius:12px; background:#7f1d1d; color:#fff; font-size:13px; line-height:1.35; }
+  .toast.good { border-color:#166534; } .toast.bad { border-color:#7f1d1d; color:var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Infinity Base <small class="ver">v__DIMOD_VERSION__ · __DIMOD_BUILD__</small></h1>
+  <span class="chip" id="conn">offline</span>
+  <button class="icon" id="gear" aria-label="Settings">&#9881;</button>
+</header>
+<div class="buildwarn" id="buildwarn" hidden></div>
+<main>
+  <div class="top">
+    <div class="stage" id="stage"></div>
+    <div class="side">
+      <div class="sel-card" id="selcard"></div>
+      <div class="actions">
+        <button class="act primary" id="aLoad">Load</button>
+        <button class="act" id="aMove">Move</button>
+        <button class="act" id="aClear">Clear</button>
+        <button class="act warn" id="aAll">Clear all</button>
+      </div>
+      <div class="stacks" id="stacks"></div>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <section class="picker" id="picker">
+    <div class="tabs" id="tabs"></div>
+    <div class="row2" id="eds"></div>
+    <div class="row2"><input type="search" id="search" placeholder="Search characters, power-ups, play sets..." autocomplete="off"><span class="count" id="count"></span></div>
+    <div class="secs" id="secs"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+</main>
+
+<div class="sheet-bg" id="sheetbg"></div>
+<div class="sheet" id="sheet">
+  <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1">Settings</h2><button class="act primary" id="sDone" style="padding:8px 16px">Done</button></div>
+  <p class="sub">The TV picker on the console uses these too.</p>
+  <div class="set"><label for="sOp">Window opacity <span id="sOpV"></span></label><input type="range" id="sOp" min="30" max="100" step="5"></div>
+  <div class="set"><label>UI size</label><div class="seg" id="sUi"></div></div>
+  <div class="set"><label>Theme</label><div class="seg wrap" id="sTheme"></div></div>
+  <div class="set col2"><label>Background <small style="color:var(--muted);font-weight:500">(TV picker and this page)</small></label>
+    <div class="bgrow" id="sBg"></div>
+    <div class="bgrow"><button class="act" id="sPhoto">Choose photo...</button><button class="act warn" id="sNoPhoto">Remove photo</button>
+      <input type="file" id="sFile" accept="image/*" hidden></div></div>
+  <div class="set"><label>Sneak peek size</label><div class="seg" id="sPk"></div></div>
+  <div class="set"><label for="sBtn">Sneak peek button</label><select id="sBtn"></select></div>
+  <div class="set"><label for="sOpen">Open picker</label><select id="sOpen"></select></div>
+  <div class="set"><label>Fast loading</label><div class="seg" id="sFast"></div></div>
+  <div class="set"><label>Base</label><button class="act warn" id="sClear">Clear the base</button></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SPOTS = ["Hexagon","Hex disc 1","Hex disc 2","Left pad","Left disc 1","Left disc 2","Right pad","Right disc 1","Right disc 2"];
+/* same geometry as the TV picker: centre x, centre y (fractions of the picture), diameter (of its width) */
+/* columns = the TV picker's D-pad grid: left pad (player 1), hexagon, right pad (player 2) */
+const COLS = [{top:3, pad:1, name:'P1 · Left', sub:'Character', disc:'Power-up'},
+              {top:0, pad:0, name:'Hexagon', sub:'Play set / Toy Box', disc:'Hex disc'},
+              {top:6, pad:2, name:'P2 · Right', sub:'Character', disc:'Power-up'}];
+const PADVAR = ['--hexc', '--p1', '--p2'];
+const padOf = s => Math.floor(s / 3);
+/* game rules: one character per pad, two power discs under it, one play set (+ hex discs, 3 in all) on the hexagon */
+const FITS = { F:[3,6], R:[4,5,7,8], P:[0], H:[0,1,2] };
+const PAGES = [["P","Play Sets"],["F","Characters"],["R","Power-Ups"],["H","Power Discs"],["*","★ Favourites"]];
+const PAGE_FOR_SPOT = s => s === 0 ? 0 : s <= 2 ? 3 : (s === 3 || s === 6) ? 1 : 2;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const icon = id => `/ui/p${id}.png?v=__DIMOD_BUILD__`;
+const art = (id, extra) => `<img class="art${extra ? ' ' + extra : ''}" data-id="${id}" src="${icon(id)}" alt="" onerror="this.style.visibility='hidden'">`;
+
+let plaques = {};
+let items = [], byId = {}, state = null, favs = new Set(), settings = null, sections = {}, primed = false;
+let page = 1, ed = 0, spot = -1, moving = -1, onBase = new Set();
+const led = [{seq:-1,t0:0},{seq:-1,t0:0},{seq:-1,t0:0}];
+
+function toast(msg, ok) {
+  const t = $('toast'); t.textContent = msg; t.className = 'toast show ' + (ok === undefined ? '' : ok ? 'good' : 'bad');
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.className = 'toast', 2600);
+}
+async function api(url, method) {
+  const r = await fetch(url, { method: method || 'GET' }); return r.json();
+}
+async function post(url) {
+  try { const j = await api(url, 'POST'); if (j.msg) toast(j.msg, j.ok); poll(); return j; }
+  catch (e) { toast('The PS5 did not answer.', false); }
+}
+
+/* ---------------------------------------------------------------- base */
+/* z order: hexagon stack at the back, then the pads; inside a pad disc 2, disc 1, what stands on top */
+const ZIDX = [2, 1, 0, 5, 4, 3, 8, 7, 6];
+let G3 = null;                                     /* /ui/base3d.json?v=__DIMOD_BUILD__: the tilted base's geometry */
+const A3 = Array.from({ length: 9 }, () => ({ id: 0, old: 0, t: 0, primed: false }));
+const LIFT_MS = 450, GAP_MS = 300, DROP_MS = 500, RIPPLE_MS = 520;   /* same swap animation as the TV picker */
+const STAGE_H = 1.08;                              /* stage height / width: the base at the bottom, room above */
+
+function buildStage() {
+  const st = $('stage');
+  let h = '<img class="b3" id="b3" src="/ui/base3d.png?v=__DIMOD_BUILD__" alt="">';
+  for (let p = 0; p < 3; p++) h += `<div class="lmask" id="spill${p}" style="--m:url(/ui/l3d_spill${p}.png?v=__DIMOD_BUILD__);z-index:2"></div><div class="lmask" id="ring${p}" style="--m:url(/ui/l3d_ring${p}.png?v=__DIMOD_BUILD__);z-index:3"></div>`;
+  for (let s = 0; s < 9; s++) h += `<img class="it" id="it${s}" alt="" style="z-index:${10 + ZIDX[s] * 2}"><img class="it" id="gh${s}" alt="" style="z-index:${40 + ZIDX[s]}"><img class="fx" id="fx${s}" alt="" style="z-index:${60 + ZIDX[s]}">`;
+  /* a soft shadow under what stands on each pad (between its discs and it), the landing ripple */
+  for (let p = 0; p < 3; p++) h += `<div class="lmask" id="sh${p}" style="--m:url(/ui/l3d_shadow.png?v=__DIMOD_BUILD__);background:#000;z-index:${10 + ZIDX[p * 3] * 2 - 1}"></div><div class="lmask" id="rp${p}" style="--m:url(/ui/l3d_ring${p}.png?v=__DIMOD_BUILD__);z-index:55"></div>`;
+  for (let p = 0; p < 3; p++) h += `<div class="lmask" id="up${p}" style="--m:url(/ui/l3d_up.png?v=__DIMOD_BUILD__);z-index:${50 + p}"></div>`;
+  h += '<div class="lmask" id="mark" style="z-index:80"></div>';
+  h += [['P1', '--p1'], ['P2', '--p2']].map(([t, v], k) => `<div class="ptag" id="tag${k}" style="background:var(${v});z-index:90">${t}</div>`).join('');
+  for (let p = 0; p < 3; p++) h += `<div class="hit" id="hit${p}" style="z-index:${100 + p}"></div>`;
+  st.innerHTML = h;
+  for (let p = 0; p < 3; p++) $('hit' + p).onclick = () => tapPad(p);
+  $('stacks').innerHTML = COLS.map((c, k) => `<div class="col" style="--pc:var(${PADVAR[c.pad]})"><h3><span id="ch${k}">${c.name}</span><i id="cl${k}" class="${c.pad ? '' : 'hex'}"></i></h3>
+      <div class="cell top" id="mi${c.top}" data-s="${c.top}"></div><div class="under">stacked under</div>
+      <div class="cell" id="mi${c.top + 1}" data-s="${c.top + 1}"></div><div class="cell" id="mi${c.top + 2}" data-s="${c.top + 2}"></div><div class="pad-end"></div></div>`).join('');
+  $('stacks').querySelectorAll('.cell').forEach(m => m.onclick = () => tapSpot(+m.dataset.s));
+}
+
+/* tapping a pad picks what stands on it, tap again for disc 1, then disc 2 */
+function tapPad(p) {
+  const top = p * 3;
+  if (moving >= 0) {                                   /* moving: to the same kind of spot on this pad */
+    let to = top;
+    if (moving % 3) to = state && state.slots[top + 1].present && !state.slots[top + 2].present ? top + 2 : top + 1;
+    tapSpot(to); return;
+  }
+  tapSpot(spot >= top && spot < top + 3 ? (spot === top + 2 ? -1 : spot + 1) : top, true);
+}
+
+function tapSpot(i, cycle) {
+  if (i < 0) { spot = -1; drawBase(); return; }
+  if (cycle) { spot = i; drawBase(); return; }
+  if (moving >= 0) {
+    const from = moving; moving = -1;
+    if (from !== i) post(`/api/move?from=${from}&to=${i}`);
+    spot = i; drawBase(); return;
+  }
+  spot = spot === i ? -1 : i;
+  drawBase();
+}
+
+function drawBase() {
+  if (!state) return;
+  state.slots.forEach((s, i) => {
+    track(i, s.present ? s.id : 0);
+    const mi = $('mi' + i), top = i % 3 === 0, col = COLS.find(c => c.top === i - i % 3);
+    mi.className = 'cell' + (top ? ' top' : '') + (s.present ? '' : ' empty') + (i === spot ? ' sel' : '');
+    const what = top ? col.sub : `Disc ${i % 3} · ${col.disc}`;
+    const pic = s.present ? art(s.id) : `<div class="e ${i < 3 ? 'hex' : ''}"></div>`;
+    const html = `${pic}<div style="min-width:0"><small>${what}</small><span>${s.present ? esc(s.name) : 'empty'}</span></div>`;
+    if (mi.dataset.h !== html) { mi.innerHTML = html; mi.dataset.h = html; }
+  });
+  const s = spot >= 0 ? state.slots[spot] : null;
+  const card = spot < 0
+    ? `<div><div class="t">No spot chosen</div><div class="n">Tap an item: a new character swaps out yours</div></div>`
+    : s.present ? `${art(s.id)}<div><div class="t">${SPOTS[spot]}</div><div class="n">${esc(s.name)}</div></div>`
+                : `<div><div class="t">${SPOTS[spot]}</div><div class="n">Empty - pick something below</div></div>`;
+  if ($('selcard').dataset.h !== card) { $('selcard').innerHTML = card; $('selcard').dataset.h = card; }
+  primed = true;
+  $('aClear').disabled = !(s && s.present);
+  $('aMove').disabled = !(s && s.present);
+  $('aMove').textContent = moving >= 0 ? 'Tap target' : 'Move';
+}
+
+/* a spot changed: what was there lifts off and fades, what arrives drops on (drawn in frame()) */
+function track(s, id) {
+  const a = A3[s];
+  if (!a.primed) { a.id = id; a.primed = true; return; }
+  if (a.id !== id) { a.old = a.id; a.id = id; a.t = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : performance.now(); }
+}
+
+/* one item on spot s (layer = discs under it), in stage pixels; same rules as place3d() in cui.c */
+function place3d(el, id, s, bx, by, bw, layer, lift, scale, alpha) {
+  const p = Math.floor(s / 3), pd = G3.pads[p], rx = pd[2] * bw, ry = pd[3] * bw;
+  const pcx = bx + pd[0] * bw, pcy = by + pd[1] * bw - layer * G3.layer * bw - lift;
+  const it = byId[id] || { kind: s % 3 ? 'R' : 'F' };
+  if (el.dataset.id != id) { el.dataset.id = id; el.src = icon(id); }
+  let box;
+  if (it.kind === 'F' || it.kind === 'P') {            /* stands on its own base */
+    const [fx, fy, fw] = it.foot || [0.5, 0.96, 0.6];
+    let D = it.kind === 'P' ? rx * 2 * 1.2 : Math.min(rx * 2 * 0.82 / Math.max(fw, 0.2), rx * 2 * 2.0);
+    D *= scale;
+    box = { x: pcx - fx * D, y: pcy + ry * 0.32 - fy * D, w: D, h: D, fx, fy, fw, stand: true, gx: pcx, gy: pcy + lift + ry * 0.32, sw: fw * D / scale, rr: ry / rx, lift };
+  } else {                                             /* a power disc lies flat */
+    const w = rx * 2 * (p === 0 ? 0.9 : 0.86) * scale, h = w * ry / rx;
+    box = { x: pcx - w / 2, y: pcy - h / 2, w, h, stand: false };
+  }
+  Object.assign(el.style, { left: box.x + 'px', top: box.y + 'px', width: box.w + 'px', height: box.h + 'px', opacity: alpha.toFixed(3) });
+  return box;
+}
+
+function frame(now) {
+  if (state && G3 && state.leds) {
+    const st = $('stage'), bw = st.clientWidth, bh = bw * G3.aspect, by = bw * STAGE_H - bh, bx = 0;
+    $('b3').style.top = by + 'px';
+    const L = [];
+    for (let p = 0; p < 3; p++) {                      /* the pad lights: rim, and the light on the plastic */
+      const [c, b] = ledNow(p, now), rgb = `rgb(${c[0]},${c[1]},${c[2]})`;
+      L.push([c, b]);
+      for (const [k, al] of [['spill', 0.18 + 0.55 * b], ['ring', 0.3 + 0.7 * b]]) {
+        const e = $(k + p), r = G3[k][p];
+        Object.assign(e.style, { left: bx + r[0] * bw + 'px', top: by + r[1] * bw + 'px', width: r[2] * bw + 'px', height: r[3] * bw + 'px',
+                                 background: rgb, opacity: b > 0.02 ? al.toFixed(3) : 0 });
+      }
+      $('cl' + [1, 0, 2][p]).style.background = b > 0.02 ? rgb : '';
+      const pd = G3.pads[p], hit = $('hit' + p);  /* tap area: the pad and the room above it */
+      Object.assign(hit.style, { left: bx + (pd[0] - pd[2]) * bw + 'px', width: pd[2] * 2 * bw + 'px',
+                                 top: by + (pd[1] - pd[3] * (p ? 4.2 : 3.4)) * bw + 'px', height: pd[3] * (p ? 5.3 : 4.5) * bw + 'px' });
+    }
+    for (let s = 0; s < 9; s++) {
+      const p = Math.floor(s / 3), k = s % 3, sl = state.slots, a = A3[s];
+      const layer = k === 2 ? 0 : k === 1 ? +sl[p * 3 + 2].present : +sl[p * 3 + 1].present + +sl[p * 3 + 2].present;
+      const dt = a.t ? now - a.t : 1e9, it = $('it' + s), gh = $('gh' + s), fxe = $('fx' + s);
+      if (a.old && dt < LIFT_MS) { const g = dt / LIFT_MS; place3d(gh, a.old, s, bx, by, bw, layer, g * g * bw * 0.2, 1 + 0.2 * g, 1 - g); }
+      else gh.style.opacity = 0;
+      let box = null, lvl = 1;
+      if (a.id) {
+        const f = (dt - (a.old ? GAP_MS : 0)) / DROP_MS;
+        if (f >= 1) box = place3d(it, a.id, s, bx, by, bw, layer, 0, 1, 1);
+        else if (f > 0) { const u = f - 1, e = 1 + 2.70158 * u ** 3 + 1.70158 * u * u; lvl = f;
+                          box = place3d(it, a.id, s, bx, by, bw, layer, (1 - e) * bw * 0.25, 1.12 - 0.12 * e, f < 0.6 ? f / 0.6 : 1); }
+        else it.style.opacity = 0;
+      } else it.style.opacity = 0;
+      /* Light FX blade / glow-in-the-dark layer over it (same model as cui.c) */
+      const fx = a.id && byId[a.id] ? byId[a.id].fx : '', [, b] = L[p];
+      if (box && box.stand && fx) {
+        if (fxe.dataset.id != a.id) { fxe.dataset.id = a.id; fxe.src = `/ui/g${a.id}.png?v=__DIMOD_BUILD__`; fxe._ch = undefined; }
+        let v = Math.min(1, b * 1.25);
+        if (fx === 'glow') {
+          const d = fxe._t ? now - fxe._t : 0; fxe._t = now;
+          let ch = fxe._ch === undefined ? 1 : fxe._ch;
+          if (b > 0.05) ch += (1 - ch) * Math.min(1, d * b / 900);
+          ch *= Math.exp(-d / 20000 * (1 - b)); fxe._ch = ch;
+          const dark = 1 - Math.min(1, b); v = ch * (0.16 + 0.74 * dark * dark);
+        }
+        Object.assign(fxe.style, { left: box.x + 'px', top: box.y + 'px', width: box.w + 'px', height: box.h + 'px', opacity: (v * lvl * +it.style.opacity).toFixed(3) });
+      } else fxe.style.opacity = 0;
+      const land = (a.old ? GAP_MS : 0) + DROP_MS * 0.55, rp = $('rp' + p);   /* landing ripple on the rim */
+      if (a.id && a.t && dt >= land && dt < land + RIPPLE_MS) {
+        const g = (dt - land) / RIPPLE_MS, r = G3.ring[p], grow = (k ? 0.92 : 1.02) * (1 + 0.32 * g), [c, bb] = L[p];
+        const rw = r[2] * bw * grow, rh = r[3] * bw * grow, rcx = bx + (r[0] + r[2] / 2) * bw, rcy = by + (r[1] + r[3] / 2) * bw - layer * G3.layer * bw;
+        const col = bb > 0.05 ? c.map(v => Math.round(v + (255 - v) * 0.45)) : [225, 238, 255];
+        Object.assign(rp.style, { left: rcx - rw / 2 + 'px', top: rcy - rh / 2 + 'px', width: rw + 'px', height: rh + 'px',
+                                  background: `rgb(${col})`, opacity: ((1 - g) ** 2 * 0.95).toFixed(3) });
+        rp._s = s;
+      } else if (rp._s === s) rp.style.opacity = 0;
+      if (k === 0) {                                   /* the shadow under what stands on the pad */
+        const shd = $('sh' + p), near = box && box.stand ? 1 - box.lift / (bw * 0.25) : 0;
+        if (near > 0) {
+          const sw = box.sw * (1.25 + 0.35 * (1 - near)), shh = sw * box.rr * 0.95;
+          Object.assign(shd.style, { left: box.gx - sw / 2 + sw * 0.05 + 'px', top: box.gy - shh * 0.62 + 'px', width: sw + 'px', height: shh + 'px',
+                                     opacity: (0.5 * near * near * +it.style.opacity).toFixed(3) });
+        } else shd.style.opacity = 0;
+      }
+      if (k === 0) {                                   /* the pad light coming up into a clear figure base */
+        const up = $('up' + p), [c, bb] = L[p];
+        if (box && box.stand && bb > 0.02) {
+          const uw = box.fw * box.w * 1.1, uh = uw * 0.8, ux = box.x + box.fx * box.w - uw / 2, uy = box.y + box.fy * box.h - uh * 0.8;
+          Object.assign(up.style, { left: ux + 'px', top: uy + 'px', width: uw + 'px', height: uh + 'px',
+                                    background: `rgb(${c[0]},${c[1]},${c[2]})`, opacity: (0.38 * bb * lvl).toFixed(3) });
+        } else up.style.opacity = 0;
+      }
+      if (s === spot || s === moving) {               /* the chosen spot's rim, at its height in the stack */
+        const r = G3.ring[p], grow = k ? 0.9 : 1.04, rw = r[2] * bw * grow, rh = r[3] * bw * grow;
+        const rcx = bx + (r[0] + r[2] / 2) * bw, rcy = by + (r[1] + r[3] / 2) * bw - layer * G3.layer * bw, m = $('mark');
+        Object.assign(m.style, { left: rcx - rw / 2 + 'px', top: rcy - rh / 2 + 'px', width: rw + 'px', height: rh + 'px', opacity: 1,
+                                 background: s === moving ? 'var(--gold)' : 'var(--accent)' });
+        m.style.setProperty('--m', `url(/ui/l3d_ring${p}.png?v=__DIMOD_BUILD__)`);
+      }
+    }
+    if (spot < 0 && moving < 0) $('mark').style.opacity = 0;
+    for (let k = 0; k < 2; k++) {                      /* P1 / P2 at the front outer edge of each pad */
+      const pd = G3.pads[k + 1], t = $('tag' + k);
+      Object.assign(t.style, { left: bx + (pd[0] + (k ? 1 : -1) * pd[2] * 0.95) * bw + 'px', top: by + (pd[1] + pd[3] * 1.15) * bw + 'px' });
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+$('aLoad').onclick = () => { if (spot >= 0) setPage(PAGE_FOR_SPOT(spot)); $('picker').scrollIntoView({ behavior:'smooth' }); };
+$('aMove').onclick = () => { if (spot >= 0 && state.slots[spot].present) { moving = spot; toast('Tap where it should go'); drawBase(); } };
+$('aClear').onclick = () => { if (spot >= 0) post(`/api/remove?slot=${spot}`); };
+$('aAll').onclick = () => { if (confirm('Take everything off the base?')) post('/api/clear'); };
+
+/* ---------------------------------------------------------------- picker */
+function setPage(p) { page = p; $('search').value = ''; renderTabs(); renderGrid(); }
+function renderTabs() {
+  $('tabs').innerHTML = PAGES.map((p, i) => `<button class="tab ${i === page ? 'on' : ''}" data-i="${i}">${p[1]}</button>`).join('');
+  $('tabs').querySelectorAll('.tab').forEach(b => b.onclick = () => setPage(+b.dataset.i));
+  $('eds').innerHTML = ['All','1.0','2.0','3.0'].map((t, i) => `<button class="ed ${i === ed ? 'on' : ''}" data-e="${i}">${t}</button>`).join('');
+  $('eds').querySelectorAll('.ed').forEach(b => b.onclick = () => { ed = +b.dataset.e; renderTabs(); renderGrid(); });
+}
+function list() {
+  const q = $('search').value.trim().toLowerCase();
+  if (q) return items.filter(it => it.name.toLowerCase().includes(q) || it.aka.toLowerCase().includes(q));
+  const k = PAGES[page][0];
+  let l = k === '*' ? [...favs].map(id => byId[id]).filter(Boolean) : items.filter(it => it.kind === k);
+  return ed ? l.filter(it => it.series === ed) : l;
+}
+function renderGrid() {
+  const q = $('search').value.trim(), l = list(), k = PAGES[page][0];
+  $('count').textContent = `${l.length} ${q ? 'found' : ''}`;
+  $('secs').innerHTML = '';
+  if (!l.length) {
+    $('grid').innerHTML = `<div class="empty">${q ? 'Nothing matches.' : k === '*' ? 'No favourites yet - tap ☆ on anything.' : 'Nothing in this edition.'}</div>`;
+    return;
+  }
+  const KIND = { F:'Character', P:'Play Set', R:'Power-Up', H:'Power Disc' };
+  const album = !q && (k === 'R' || k === 'H');
+  $('grid').className = 'grid ' + (album ? 'album' : 'shelf');
+  const stand = it => {   /* stand it on the shelf by its own base (same numbers as the TV picker) */
+    const disc = it.kind === 'R' || it.kind === 'H', S = disc ? 96 : 118;
+    const [fx, fy, fw] = disc ? [0.5, 0.97, 0.5] : (it.foot || [0.5, 0.96, 0.6]);
+    return `style="--fx:${(fx * 100).toFixed(0)}%;--sw:${Math.round(fw * S * 1.3)}px"`
+         + ` data-img="width:${S}px;height:${S}px;left:calc(50% - ${(fx * S).toFixed(1)}px);bottom:${(27 - (1 - fy) * S).toFixed(1)}px"`;
+  };
+  const card = it => `<div class="item ${onBase.has(it.id) ? 'onbase' : ''}" data-id="${it.id}" ${album ? '' : stand(it)}>
+      <button class="star ${favs.has(it.id) ? 'on' : ''}" data-f="${it.id}" aria-label="favourite">${favs.has(it.id) ? '★' : '☆'}</button>
+      ${album ? `<i class="slot" style="background-image:url(/ui/album_slot_${it.kind === 'H' ? 'h' : 'r'}.png)"></i>` : ''}
+      <img class="art" loading="lazy" src="${icon(it.id)}" alt="" onerror="this.style.visibility='hidden'"><div>${esc(it.name)}</div>${q || k === '*' ? `<small>${it.group || KIND[it.kind]} · ${it.series}.0</small>` : ''}</div>`;
+  /* the disc pages come in sections (Boosts, Costumes... / Vehicles, Mounts, Skies...) */
+  const groups = !q && sections[k] ? sections[k].map(g => [g, l.filter(it => it.group === g)]).filter(([, a]) => a.length) : null;
+  if (groups && groups.length > 1) {
+    const plq = g => plaques[g] ? `<img class="plqi" src="/ui/${plaques[g]}?v=__DIMOD_BUILD__" alt="${esc(g)}">` : `<b class="plq">${esc(g)}</b>`;
+    $('grid').innerHTML = groups.map(([g, a], n) => `<h4 class="sec" id="sec${n}">${plq(g)} <span>${a.length}</span></h4><div class="drows">${a.map(card).join('')}</div>`).join('');
+    $('secs').innerHTML = groups.map(([g, a], n) => `<button class="sec-chip" data-n="${n}">${esc(g)}<b>${a.length}</b></button>`).join('');
+    $('secs').querySelectorAll('.sec-chip').forEach(b => b.onclick = () => {
+      const n = +b.dataset.n, from = dispFx.sec || 0;
+      $('sec' + n).scrollIntoView({ behavior:'smooth', block:'start' });
+      if (album && n !== from) setTimeout(() => dispFx('page', n > from ? 1 : -1), 350);   /* turn to that section */
+      dispFx.sec = n;
+    });
+  } else $('grid').innerHTML = `<div class="drows">${l.map(card).join('')}</div>`;
+  /* opening another page / edition: the doors open, or a page of the album turns */
+  const key = page + '/' + ed;
+  if (!q && key !== renderGrid.key) dispFx(album ? 'page' : 'doors', 1);
+  renderGrid.key = q ? renderGrid.key : key;
+  $('grid').querySelectorAll('.item').forEach(el => {
+    if (el.dataset.img) el.querySelector('img').style.cssText = el.dataset.img;
+    /* a touch lifts it (steps forward / rises out), letting go places it */
+    el.onpointerdown = e => { if (!e.target.dataset.f) el.classList.add('lift'); };
+    el.onpointerleave = el.onpointercancel = () => el.classList.remove('lift');
+    el.onclick = e => {
+      if (e.target.dataset.f) return;
+      el.classList.remove('lift'); el.classList.add('picked');
+      setTimeout(() => el.classList.remove('picked'), 700);
+      place(+el.dataset.id);
+    };
+  });
+  $('grid').querySelectorAll('.star').forEach(b => b.onclick = async e => {
+    e.stopPropagation(); const id = +b.dataset.f;
+    const j = await api(`/api/fav?id=${id}&on=${favs.has(id) ? 0 : 1}`, 'POST'); favs = new Set(j.ids); renderGrid();
+  });
+}
+$('search').addEventListener('input', renderGrid);
+
+/* the doors / page turn, laid over the part of the display that is on screen */
+function dispFx(kind, dir) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const g = $('grid'); g.querySelectorAll('.dispfx').forEach(e => e.remove());
+  const r = g.getBoundingClientRect(), top = Math.max(0, -r.top), h = Math.min(innerHeight, r.bottom) - Math.max(0, r.top);
+  if (h < 40) return;
+  const fx = document.createElement('div'); fx.className = 'dispfx';
+  fx.style.top = top + 'px'; fx.style.height = h + 'px';
+  fx.innerHTML = kind === 'doors' ? '<i class="door l"></i><i class="door r"></i>' : `<i class="page ${dir < 0 ? 'back' : ''}"></i>`;
+  g.appendChild(fx);
+  setTimeout(() => fx.remove(), 800);
+}
+
+function place(id) {
+  const it = byId[id], fits = FITS[it.kind] || [];
+  const slot = spot >= 0 && fits.includes(spot) ? spot : -1;
+  toast(`Placing ${it.name}...`);
+  post(`/api/place?slot=${slot}&id=${id}`).then(j => { if (j && j.ok) { spot = -1; drawBase(); } });
+}
+
+/* ---------------------------------------------------------------- settings */
+function seg(id, opts, cur, key) {
+  $(id).innerHTML = opts.map((o, i) => `<button class="${i === cur ? 'on' : ''}" data-v="${i}">${o}</button>`).join('');
+  $(id).querySelectorAll('button').forEach(b => b.onclick = () => saveSetting(key, +b.dataset.v));
+}
+function drawSettings() {
+  const s = settings; if (!s) return;
+  $('sOp').value = s.opacity; $('sOpV').textContent = s.opacity + '%';
+  seg('sUi', ['90%','100%','110%','120%'], s.ui_size, 'ui_size');
+  const SW = ['#38bdf8', 'linear-gradient(135deg,#ffffff55,#ffffff11)', '#f1f5f9', '#ef4444', '#d946ef'];
+  $('sTheme').innerHTML = s.themes.map((t, i) => `<button class="${i === s.theme ? 'on' : ''}" data-v="${i}"><i class="sw" style="background:${SW[i]}"></i>${t}</button>`).join('');
+  $('sTheme').querySelectorAll('button').forEach(b => b.onclick = () => saveSetting('theme', +b.dataset.v));
+  $('sBg').innerHTML = s.backgrounds.map((t, i) => {
+    const pic = i === 4 ? (s.custom_bg ? `/api/background?v=${s.bg_gen}` : '') : i ? `/ui/bg${i}.png?v=__DIMOD_BUILD__` : '';
+    return `<button class="bgopt ${i === s.background ? 'on' : ''}" data-v="${i}" style="${pic ? `background-image:url('${pic}')` : ''}">${i === 4 && !s.custom_bg ? 'Your photo' : t}</button>`;
+  }).join('');
+  $('sBg').querySelectorAll('button').forEach(b => b.onclick = () => {
+    if (+b.dataset.v === 4 && !s.custom_bg) { $('sFile').click(); return; }
+    saveSetting('background', +b.dataset.v);
+  });
+  $('sNoPhoto').disabled = !s.custom_bg;
+  seg('sPk', ['Off','S','M','L'], s.peek_size, 'peek_size');
+  seg('sFast', ['Off','On'], s.fast_load ? 1 : 0, 'fast_load');
+  $('sBtn').innerHTML = s.peek_choices.map((c, i) => `<option value="${i}" ${c === s.peek ? 'selected' : ''}>Hold ${c}</option>`).join('');
+  if (s.open_choices) $('sOpen').innerHTML = s.open_choices.map((c, i) => `<option value="${i}" ${c === s.open ? 'selected' : ''}>Hold ${c}</option>`).join('')
+    + (s.open_choices.includes(s.open) ? '' : `<option selected disabled>${s.open}</option>`);
+}
+async function saveSetting(k, v) { settings = await api(`/api/settings?${k}=${v}`, 'POST'); drawSettings(); applyLook(settings); }
+$('sPhoto').onclick = () => $('sFile').click();
+$('sFile').onchange = () => { const f = $('sFile').files[0]; if (f) uploadPhoto(f); $('sFile').value = ''; };
+$('sNoPhoto').onclick = async () => {
+  const j = await api('/api/background?remove=1', 'POST'); toast(j.msg, j.ok);
+  if (settings && settings.background === 4) await saveSetting('background', 0);
+  settings = await api('/api/settings'); drawSettings(); applyLook(settings);
+};
+$('sOp').oninput = () => $('sOpV').textContent = $('sOp').value + '%';
+$('sOp').onchange = () => saveSetting('opacity', $('sOp').value);
+$('sBtn').onchange = () => saveSetting('peek', $('sBtn').value);
+$('sOpen').onchange = () => saveSetting('open', $('sOpen').value);
+$('sClear').onclick = () => { if (confirm('Take everything off the base?')) post('/api/clear'); };
+function openSheet(on) { $('sheet').style.display = $('sheetbg').style.display = on ? 'block' : 'none'; }
+$('gear').onclick = async () => { try { settings = await api('/api/settings'); drawSettings(); } catch (e) {} openSheet(true); };
+$('sheetbg').onclick = $('sDone').onclick = () => openSheet(false);
+
+/* ---------------------------------------------------------------- live state */
+async function poll() {
+  try {
+    state = await api('/api/state');
+    const c = $('conn');
+    /* the page and the payload must come from the same build (the art, catalog and rules match) */
+    const bw = $('buildwarn'), PAGE_BUILD = '__DIMOD_BUILD__';
+    if (state.build && state.build !== PAGE_BUILD) {
+      bw.hidden = false;
+      bw.textContent = `The PS5 is running build ${state.build} but this page is build ${PAGE_BUILD}. Copy the web folder from the same zip as diinject.elf to /data/dimod/web, then reload.`;
+    } else if (!state.build) {
+      bw.hidden = false;
+      bw.textContent = 'The PS5 is running an older diinject.elf than this page. Send the diinject.elf from the same zip, then reload.';
+    } else bw.hidden = true;
+    c.textContent = !state.linked ? 'start the game' : state.activated ? 'base connected' : 'waiting for game';
+    c.className = 'chip' + (state.activated ? ' on' : '');
+    const nb = new Set(state.slots.filter(s => s.present).map(s => s.id));
+    const changed = nb.size !== onBase.size || [...nb].some(x => !onBase.has(x));
+    onBase = nb; drawBase();
+    if (changed) $('grid').querySelectorAll('.item').forEach(el => el.classList.toggle('onbase', onBase.has(+el.dataset.id)));
+    $('status').textContent = state.status && state.status_age < 5000 ? state.status : '';
+  } catch (e) { $('conn').textContent = 'offline'; $('conn').className = 'chip'; }
+}
+
+/* the base lights: same model as src/core/ledanim.h (fade / flash counts, odd = ends on the new colour) */
+function ledEval(l, t, unit) {
+  if (!l || !l.valid || l.mode === 0) return [[0, 0, 0], false];
+  unit = unit > 0 ? unit : 25; t = Math.max(0, t);
+  const mix = (a, b, f) => a.map((v, i) => Math.round(v + (b[i] - v) * Math.min(1, Math.max(0, f))));
+  if (l.mode === 2) {
+    const dur = (l.a || 1) * unit, n = l.b || 1, k = Math.floor(t / dur);
+    if (n !== 255 && k >= n) return [(n & 1) ? l.to : l.from, false];
+    let f = (t - k * dur) / dur; if (k & 1) f = 1 - f;
+    return [mix(l.from, l.to, f), true];
+  }
+  if (l.mode === 3) {
+    const on = (l.a || 1) * unit, off = (l.b || 1) * unit, n = l.c || 1, k = Math.floor(t / (on + off));
+    const phase = 2 * k + (t - k * (on + off) >= on ? 1 : 0);
+    if (n !== 255 && phase >= n) return [(n & 1) ? l.to : l.from, false];
+    return [(phase & 1) ? l.from : l.to, true];
+  }
+  return [l.to, false];
+}
+function ledNow(p, now) {
+  const l = state.leds[p], a = led[p];
+  if (l.seq !== a.seq) { a.seq = l.seq; a.t0 = now - l.age; }   /* replay from when the payload saw it */
+  const [c] = ledEval(l, now - a.t0, state.led_unit);
+  return [c, Math.max(...c) / 255];
+}
+/* ---------------------------------------------------------------- look: theme + background */
+function applyLook(s) {
+  if (!s) return;
+  document.documentElement.dataset.theme = s.theme;
+  const pic = s.background === 4 ? (s.custom_bg ? `/api/background?v=${s.bg_gen}` : '') : s.background > 0 ? `/ui/bg${s.background}.png?v=__DIMOD_BUILD__` : '';
+  document.body.classList.toggle('pic', !!pic);
+  document.body.style.setProperty('--pic', pic ? `url("${pic}")` : 'none');
+  const m = document.querySelector('meta[name=theme-color]');
+  if (m) m.content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#0a1020';
+  try { localStorage.setItem('di_look', JSON.stringify({theme:s.theme, background:s.background, custom_bg:s.custom_bg, bg_gen:s.bg_gen})); } catch (e) {}
+}
+try { applyLook(JSON.parse(localStorage.getItem('di_look'))); } catch (e) {}
+
+/* a photo from the phone: cropped to 16:9, 1280x720, sent as PNG */
+async function uploadPhoto(file) {
+  try {
+    toast('Preparing the photo...');
+    const bmp = await createImageBitmap(file);
+    const W = 1280, H = 720, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const sc = Math.max(W / bmp.width, H / bmp.height), w = bmp.width * sc, h = bmp.height * sc;
+    c.getContext('2d').drawImage(bmp, (W - w) / 2, (H - h) / 2, w, h);
+    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+    const r = await fetch('/api/background', { method:'POST', body: blob, headers:{'Content-Type':'image/png'} });
+    const j = await r.json(); toast(j.msg, j.ok);
+    settings = await api('/api/settings'); drawSettings(); applyLook(settings);
+  } catch (e) { toast('Could not send the photo.', false); }
+}
+
+async function init() {
+  buildStage(); renderTabs();
+  const roster = await api('/api/roster');
+  sections = roster.sections || {};
+  plaques = roster.plaques || {};
+  roster.editions.forEach(e => e.categories.forEach(c => c.items.forEach(it => { const o = { id: it.id, name: it.name, kind: c.kind, series: e.series, group: it.group || '', fx: it.fx || '', foot: it.foot, aka: it.aka || '' }; items.push(o); byId[it.id] = o; })));
+  /* list in section order, the way the catalog does */
+  const rank = it => { const a = sections[it.kind] || []; const i = a.indexOf(it.group); return i < 0 ? 99 : i; };
+  items.sort((a, b) => 'FPRH'.indexOf(a.kind) - 'FPRH'.indexOf(b.kind) || rank(a) - rank(b) || a.id - b.id);
+  try { favs = new Set((await api('/api/favorites')).ids); } catch (e) {}
+  renderGrid(); poll(); setInterval(poll, 500); try { G3 = await api('/ui/base3d.json?v=__DIMOD_BUILD__'); } catch (e) {}
+  requestAnimationFrame(frame);
+  const look = async () => { try { const s = await api('/api/settings'); if (!settings || s.theme !== settings.theme || s.background !== settings.background || s.bg_gen !== settings.bg_gen) { settings = s; applyLook(s); drawSettings(); } } catch (e) {} };
+  look(); setInterval(look, 4000);
+  setInterval(async () => { try { const f = new Set((await api('/api/favorites')).ids); if (f.size !== favs.size || [...f].some(x => !favs.has(x))) { favs = f; renderGrid(); } } catch (e) {} }, 3000);
+}
+init();
+</script>
+</body>
+</html>

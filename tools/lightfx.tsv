@@ -1,0 +1,14 @@
+# Light effects drawn over a figure's art (the build makes the layer, g<id>.png, from the art).
+#   saber  Light FX figures: the blade glows in this colour, as bright as the pad light under the
+#          figure (the real figures carry the base's light up into the blade)
+#   glow   glow-in-the-dark: charges while its pad is lit, glows in this colour when the pad goes
+#          dark and fades over about 20 seconds, faintly visible in the light
+# id<TAB>colour<TAB>kind
+1000239	#3fa2ff	saber	# Anakin Skywalker (Light FX)
+1000240	#4aa9ff	saber	# Obi-Wan Kenobi (Light FX)
+1000241	#8dff3c	saber	# Yoda (Light FX)
+1000242	#3fd6ff	saber	# Luke Skywalker (Light FX)
+1000243	#ff2b2b	saber	# Darth Vader (Light FX)
+1000244	#40e8ff	saber	# Kanan Jarrus (Light FX)
+1000245	#ff3322	saber	# Kylo Ren (Light FX)
+1000038	#7dff5c	glow	# Buzz Lightyear (Glowing)

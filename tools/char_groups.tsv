@@ -1,0 +1,150 @@
+# Character shelves, by franchise: id<TAB>shelf. Same rules as disc_groups.tsv (file order = shelf
+# order, and within a shelf the order of this file).
+# --- The Incredibles
+1000001	The Incredibles	# Mr. Incredible
+1000011	The Incredibles	# Mrs. Incredible
+1000019	The Incredibles	# Violet
+1000018	The Incredibles	# Dash
+1000015	The Incredibles	# Syndrome
+1000030	The Incredibles	# Mr. Incredible (Crystal)
+# --- Pirates of the Caribbean
+1000003	Pirates of the Caribbean	# Jack Sparrow
+1000012	Pirates of the Caribbean	# Hector Barbossa
+1000013	Pirates of the Caribbean	# Davy Jones
+1000031	Pirates of the Caribbean	# Jack Sparrow (Crystal)
+# --- Monsters University
+1000002	Monsters University	# Sulley
+1000010	Monsters University	# Mike
+1000014	Monsters University	# Randy
+1000032	Monsters University	# Sulley (Crystal)
+# --- Cars
+1000006	Cars	# Lightning McQueen
+1000017	Cars	# Mater
+1000007	Cars	# Holley Shiftwell
+1000020	Cars	# Francesco Bernoulli
+1000033	Cars	# Lightning McQueen (Crystal)
+# --- The Lone Ranger
+1000004	The Lone Ranger	# Lone Ranger
+1000005	The Lone Ranger	# Tonto
+1000034	The Lone Ranger	# Lone Ranger (Crystal)
+# --- Toy Story
+1000016	Toy Story	# Woody
+1000008	Toy Story	# Buzz Lightyear
+1000009	Toy Story	# Jessie
+1000035	Toy Story	# Buzz Lightyear (Crystal)
+1000038	Toy Story	# Buzz Lightyear (Glowing)
+# --- Marvel's The Avengers
+1000102	Marvel's The Avengers	# Iron Man
+1000100	Marvel's The Avengers	# Captain America
+1000103	Marvel's The Avengers	# Thor
+1000109	Marvel's The Avengers	# Black Widow
+1000101	Marvel's The Avengers	# Hulk
+1000110	Marvel's The Avengers	# Hawkeye
+1000127	Marvel's The Avengers	# Falcon
+1000124	Marvel's The Avengers	# Loki
+# --- Marvel's Spider-Man
+1000107	Marvel's Spider-Man	# Spider-Man
+1000134	Marvel's Spider-Man	# Black Suit Spider-Man
+1000114	Marvel's Spider-Man	# Nova
+1000113	Marvel's Spider-Man	# Iron Fist
+1000108	Marvel's Spider-Man	# Nick Fury
+1000126	Marvel's Spider-Man	# Green Goblin
+1000115	Marvel's Spider-Man	# Venom
+# --- Guardians of the Galaxy
+1000106	Guardians of the Galaxy	# Star-Lord
+1000112	Guardians of the Galaxy	# Gamora
+1000105	Guardians of the Galaxy	# Rocket Raccoon
+1000104	Guardians of the Galaxy	# Groot
+1000111	Guardians of the Galaxy	# Drax
+1000128	Guardians of the Galaxy	# Yondu
+1000125	Guardians of the Galaxy	# Ronan
+# --- Marvel Battlegrounds
+1000238	Marvel Battlegrounds	# Hulkbuster
+1000226	Marvel Battlegrounds	# Ultron
+1000229	Marvel Battlegrounds	# Captain America - The First Avenger
+1000227	Marvel Battlegrounds	# Ant-Man
+1000246	Marvel Battlegrounds	# Black Panther
+1000225	Marvel Battlegrounds	# Vision
+# --- Star Wars: Twilight of the Republic
+1000200	Star Wars: Twilight of the Republic	# Anakin Skywalker
+1000201	Star Wars: Twilight of the Republic	# Obi-Wan Kenobi
+1000202	Star Wars: Twilight of the Republic	# Yoda
+1000203	Star Wars: Twilight of the Republic	# Ahsoka Tano
+1000204	Star Wars: Twilight of the Republic	# Darth Maul
+1000239	Star Wars: Twilight of the Republic	# Anakin Skywalker (Light FX)
+1000240	Star Wars: Twilight of the Republic	# Obi-Wan Kenobi (Light FX)
+1000241	Star Wars: Twilight of the Republic	# Yoda (Light FX)
+# --- Star Wars: Rise Against the Empire
+1000206	Star Wars: Rise Against the Empire	# Luke Skywalker
+1000208	Star Wars: Rise Against the Empire	# Princess Leia
+1000207	Star Wars: Rise Against the Empire	# Han Solo
+1000209	Star Wars: Rise Against the Empire	# Chewbacca
+1000210	Star Wars: Rise Against the Empire	# Darth Vader
+1000211	Star Wars: Rise Against the Empire	# Boba Fett
+1000242	Star Wars: Rise Against the Empire	# Luke Skywalker (Light FX)
+1000243	Star Wars: Rise Against the Empire	# Darth Vader (Light FX)
+# --- Star Wars Rebels
+1000212	Star Wars Rebels	# Ezra Bridger
+1000213	Star Wars Rebels	# Kanan Jarrus
+1000214	Star Wars Rebels	# Sabine Wren
+1000215	Star Wars Rebels	# Zeb Orrelios
+1000244	Star Wars Rebels	# Kanan Jarrus (Light FX)
+# --- Star Wars: The Force Awakens
+1000233	Star Wars: The Force Awakens	# Rey
+1000230	Star Wars: The Force Awakens	# Finn
+1000232	Star Wars: The Force Awakens	# Poe Dameron
+1000231	Star Wars: The Force Awakens	# Kylo Ren
+1000245	Star Wars: The Force Awakens	# Kylo Ren (Light FX)
+# --- Inside Out
+1000216	Inside Out	# Joy
+1000219	Inside Out	# Sadness
+1000217	Inside Out	# Anger
+1000218	Inside Out	# Fear
+1000220	Inside Out	# Disgust
+# --- Finding Dory
+1000301	Finding Dory	# Dory
+1000300	Finding Dory	# Nemo
+# --- Alice Through the Looking Glass
+1000303	Alice Through the Looking Glass	# Alice
+1000304	Alice Through the Looking Glass	# Mad Hatter
+1000305	Alice Through the Looking Glass	# Time
+# --- Mickey & Friends
+1000021	Mickey & Friends	# Sorcerer's Apprentice Mickey
+1000037	Mickey & Friends	# Sorcerer's Apprentice Mickey (Crystal)
+1000221	Mickey & Friends	# Mickey Mouse
+1000222	Mickey & Friends	# Minnie Mouse
+1000116	Mickey & Friends	# Donald Duck
+# --- Frozen
+1000024	Frozen	# Anna
+1000025	Frozen	# Elsa
+1000224	Frozen	# Olaf
+# --- Wreck-It Ralph
+1000028	Wreck-It Ralph	# Wreck-It Ralph
+1000029	Wreck-It Ralph	# Vanellope
+# --- Phineas and Ferb
+1000026	Phineas and Ferb	# Phineas
+1000027	Phineas and Ferb	# Agent P
+1000036	Phineas and Ferb	# Agent P (Crystal)
+# --- Aladdin
+1000117	Aladdin	# Aladdin
+1000129	Aladdin	# Jasmine
+# --- Big Hero 6
+1000122	Big Hero 6	# Hiro
+1000123	Big Hero 6	# Baymax
+# --- TRON: Legacy
+1000150	TRON: Legacy	# Sam Flynn
+1000151	TRON: Legacy	# Quorra
+# --- Zootopia
+1000236	Zootopia	# Nick Wilde
+1000237	Zootopia	# Judy Hopps
+# --- Disney Originals
+1000022	Disney Originals	# Jack Skellington
+1000023	Disney Originals	# Rapunzel
+1000118	Disney Originals	# Stitch
+1000119	Disney Originals	# Merida
+1000120	Disney Originals	# Tinker Bell
+1000121	Disney Originals	# Maleficent
+1000223	Disney Originals	# Mulan
+1000235	Disney Originals	# Spot
+1000302	Disney Originals	# Baloo
+1000306	Disney Originals	# Peter Pan

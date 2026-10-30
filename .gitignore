@@ -1,0 +1,21 @@
+build/
+data/
+src/hook/*.o
+src/hook/dihook.elf
+src/injector/blob.h
+src/injector/imports.h
+src/injector/ovl_renderer.c
+data/dimod/themes/background.png
+# fetched / your own renders: Disney's art, keep it out of the repo and releases
+tools/art/*
+!tools/art/README.txt
+tools/art_review.html
+tools/art_sources.tmp
+# franchise logos for the shelf plaques (Disney artwork, keep it local)
+tools/plaques/*.png
+# alternate renders (Disney artwork), same as tools/art
+tools/art_alternates/*.png
+__pycache__/
+*.pyc
+src/injector/build_id.h
+src/injector/build_id.h.new
